@@ -1,0 +1,637 @@
+{
+  "Resources": {
+    "JVSANTOSTier2ECSCluster": {
+      "Type": "AWS::ECS::Cluster",
+      "Properties": {
+        "ClusterName": "JVSANTOSTier2ECSCluster",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ]
+      }
+    },
+    "JVSANTOSTier2ECSTaskRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com",
+                  "ecs-tasks.amazonaws.com"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "RoleName": "JVSANTOSTier2ECSTaskRole",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ]
+      }
+    },
+    "JVSANTOSTier2ECSTaskPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            },
+            {
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetAuthorizationToken"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "JVSANTOS-ecs-task-policy",
+        "Roles": [
+          {
+            "Ref": "JVSANTOSTier2ECSTaskRole"
+          }
+        ]
+      }
+    },
+    "JVSANTOSTier2ECSExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com",
+                  "ecs-tasks.amazonaws.com"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "RoleName": "JVSANTOSTier2ECSExecutionRole",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ]
+      }
+    },
+    "JVSANTOSTier2ECSExecutionRoleDefaultPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "JVSantosTier2FargateServiceTaskDefwebLogGroup",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "JVSANTOSTier2ECSExecutionRoleDefaultPolicy",
+        "Roles": [
+          {
+            "Ref": "JVSANTOSTier2ECSExecutionRole"
+          }
+        ]
+      }
+    },
+    "JVSANTOSTier2ECSExecutionPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            },
+            {
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetAuthorizationToken"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "JVSANTOS-ecs-task-policy",
+        "Roles": [
+          {
+            "Ref": "JVSANTOSTier2ECSExecutionRole"
+          }
+        ]
+      }
+    },
+    "JVSantosTier2FargateServiceLB": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "LoadBalancerAttributes": [
+          {
+            "Key": "deletion_protection.enabled",
+            "Value": "false"
+          }
+        ],
+        "Scheme": "internet-facing",
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt": [
+              "JVSantosTier2FargateServiceLBSecurityGroup",
+              "GroupId"
+            ]
+          }
+        ],
+        "Subnets": [
+          {
+            "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCPublicSubnet1"
+          },
+          {
+            "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCPublicSubnet2"
+          },
+          {
+            "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCPublicSubnet3"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ],
+        "Type": "application"
+      }
+    },
+    "JVSantosTier2FargateServiceLBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Automatically created Security Group for ELB JVSANTOSTier2ECSAwsArchitectureStackJVSantosTier2FargateServiceLB63282FF2",
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow from anyone on port 80",
+            "FromPort": 80,
+            "IpProtocol": "tcp",
+            "ToPort": 80
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow from anyone on port 443",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ],
+        "VpcId": {
+          "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPC"
+        }
+      }
+    },
+    "JVSantosTier2FargateServiceLBSecurityGrouptoJVSANTOSTier2ECSAwsArchitectureStackJVSantosTier2FargateServiceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": {
+          "Fn::GetAtt": [
+            "JVSantosTier2FargateServiceLBSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "IpProtocol": "tcp",
+        "Description": "Load balancer to target",
+        "DestinationSecurityGroupId": {
+          "Fn::GetAtt": [
+            "JVSantosTier2FargateServiceSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "FromPort": 80,
+        "ToPort": 80
+      }
+    },
+    "JVSantosTier2FargateServiceLBPublicListener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "DefaultActions": [
+          {
+            "TargetGroupArn": {
+              "Ref": "JVSantosTier2FargateServiceLBPublicListenerECSGroup"
+            },
+            "Type": "forward"
+          }
+        ],
+        "LoadBalancerArn": {
+          "Ref": "JVSantosTier2FargateServiceLB"
+        },
+        "Port": 80,
+        "Protocol": "HTTP"
+      }
+    },
+    "JVSantosTier2FargateServiceLBPublicListenerECSGroup": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "Name": "JVSANTOSTier2ECSHTTPTargetGroup",
+        "Port": 80,
+        "Protocol": "HTTP",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ],
+        "TargetType": "ip",
+        "VpcId": {
+          "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPC"
+        }
+      }
+    },
+    "JVSantosTier2FargateServiceLBJVSANTOSTier2HTTPSListener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "DefaultActions": [
+          {
+            "TargetGroupArn": {
+              "Ref": "JVSantosTier2FargateServiceLBPublicListenerECSGroup"
+            },
+            "Type": "forward"
+          }
+        ],
+        "LoadBalancerArn": {
+          "Ref": "JVSantosTier2FargateServiceLB"
+        },
+        "Certificates": [
+          {
+            "CertificateArn": {
+              "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2ACMCertificate"
+            }
+          }
+        ],
+        "Port": 443,
+        "Protocol": "HTTPS"
+      }
+    },
+    "JVSantosTier2FargateServiceTaskDef": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "ContainerDefinitions": [
+          {
+            "Essential": true,
+            "Image": "amazon/amazon-ecs-sample",
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "JVSantosTier2FargateServiceTaskDefwebLogGroup"
+                },
+                "awslogs-stream-prefix": "JVSantosTier2FargateService",
+                "awslogs-region": {
+                  "Ref": "AWS::Region"
+                }
+              }
+            },
+            "Name": "web",
+            "PortMappings": [
+              {
+                "ContainerPort": 80,
+                "Protocol": "tcp"
+              }
+            ]
+          }
+        ],
+        "Cpu": "256",
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "JVSANTOSTier2ECSExecutionRole",
+            "Arn"
+          ]
+        },
+        "Family": "JVSantosTier2FargateServiceTaskDef",
+        "Memory": "512",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ],
+        "TaskRoleArn": {
+          "Fn::GetAtt": [
+            "JVSANTOSTier2ECSTaskRole",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "JVSantosTier2FargateServiceTaskDefwebLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain"
+    },
+    "JVSantosTier2FargateService": {
+      "Type": "AWS::ECS::Service",
+      "Properties": {
+        "ServiceName": "JVSantosTier2FargateService",
+        "Cluster": {
+          "Ref": "JVSANTOSTier2ECSCluster"
+        },
+        "DeploymentConfiguration": {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50
+        },
+        "DesiredCount": 2,
+        "EnableECSManagedTags": false,
+        "HealthCheckGracePeriodSeconds": 60,
+        "LaunchType": "FARGATE",
+        "LoadBalancers": [
+          {
+            "ContainerName": "web",
+            "ContainerPort": 80,
+            "TargetGroupArn": {
+              "Ref": "JVSantosTier2FargateServiceLBPublicListenerECSGroup"
+            }
+          }
+        ],
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "AssignPublicIp": "DISABLED",
+            "SecurityGroups": [
+              {
+                "Fn::GetAtt": [
+                  "JVSantosTier2FargateServiceSecurityGroup",
+                  "GroupId"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCPrivateSubnet1"
+              },
+              {
+                "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCPrivateSubnet2"
+              },
+              {
+                "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCPrivateSubnet3"
+              }
+            ]
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ],
+        "TaskDefinition": {
+          "Ref": "JVSantosTier2FargateServiceTaskDef"
+        }
+      },
+      "DependsOn": [
+        "JVSantosTier2FargateServiceLBJVSANTOSTier2HTTPSListener",
+        "JVSantosTier2FargateServiceLBPublicListenerECSGroup",
+        "JVSantosTier2FargateServiceLBPublicListener"
+      ]
+    },
+    "JVSantosTier2FargateServiceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "JVSANTOSTier2ECSAwsArchitectureStack/JVSantosTier2FargateService/Service/SecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": {
+              "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCCidrBlock"
+            },
+            "Description": "Allow http inbound from VPC",
+            "FromPort": 80,
+            "IpProtocol": "tcp",
+            "ToPort": 80
+          },
+          {
+            "CidrIp": {
+              "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCCidrBlock"
+            },
+            "Description": "Allow https inbound from VPC",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443
+          },
+          {
+            "CidrIp": {
+              "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPCCidrBlock"
+            },
+            "Description": "Allow ephemeral inbound from VPC",
+            "FromPort": 1024,
+            "IpProtocol": "tcp",
+            "ToPort": 65535
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ],
+        "VpcId": {
+          "Fn::ImportValue": "JVSANTOSTier2AwsArchitectureStack:OutputJVSANTOSTier2VPC"
+        }
+      }
+    },
+    "JVSantosTier2FargateServiceSecurityGroupfromJVSANTOSTier2ECSAwsArchitectureStackJVSantosTier2FargateServiceLBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "Description": "Load balancer to target",
+        "FromPort": 80,
+        "GroupId": {
+          "Fn::GetAtt": [
+            "JVSantosTier2FargateServiceSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "JVSantosTier2FargateServiceLBSecurityGroup",
+            "GroupId"
+          ]
+        },
+        "ToPort": 80
+      }
+    },
+    "JVSantosTier2FargateServiceTaskCountTarget": {
+      "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+      "Properties": {
+        "MaxCapacity": 4,
+        "MinCapacity": 2,
+        "ResourceId": {
+          "Fn::Join": [
+            "",
+            [
+              "service/",
+              {
+                "Ref": "JVSANTOSTier2ECSCluster"
+              },
+              "/",
+              {
+                "Fn::GetAtt": [
+                  "JVSantosTier2FargateService",
+                  "Name"
+                ]
+              }
+            ]
+          ]
+        },
+        "RoleARN": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":iam::329511059546:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
+            ]
+          ]
+        },
+        "ScalableDimension": "ecs:service:DesiredCount",
+        "ServiceNamespace": "ecs"
+      }
+    },
+    "JVSantosTier2FargateServiceTaskCountTargetCpuScaling": {
+      "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+      "Properties": {
+        "PolicyName": "JVSANTOSTier2ECSAwsArchitectureStackJVSantosTier2FargateServiceTaskCountTargetCpuScaling18FFE01A",
+        "PolicyType": "TargetTrackingScaling",
+        "ScalingTargetId": {
+          "Ref": "JVSantosTier2FargateServiceTaskCountTarget"
+        },
+        "TargetTrackingScalingPolicyConfiguration": {
+          "PredefinedMetricSpecification": {
+            "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+          },
+          "ScaleInCooldown": 60,
+          "ScaleOutCooldown": 60,
+          "TargetValue": 50
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "OutputJVSantosTier2FargateServiceLoadBalancerDNS": {
+      "Value": {
+        "Fn::GetAtt": [
+          "JVSantosTier2FargateServiceLB",
+          "DNSName"
+        ]
+      }
+    },
+    "OutputJVSantosTier2FargateServiceServiceURL": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "http://",
+            {
+              "Fn::GetAtt": [
+                "JVSantosTier2FargateServiceLB",
+                "DNSName"
+              ]
+            }
+          ]
+        ]
+      }
+    },
+    "OutputJVSANTOSTier2LoadBalancerDNS": {
+      "Value": {
+        "Fn::GetAtt": [
+          "JVSantosTier2FargateServiceLB",
+          "DNSName"
+        ]
+      }
+    },
+    "OutputJVSANTOSTier2ECSCluster": {
+      "Value": {
+        "Ref": "JVSANTOSTier2ECSCluster"
+      },
+      "Export": {
+        "Name": "JVSANTOSTier2ECSAwsArchitectureStack:OutputJVSANTOSTier2ECSCluster"
+      }
+    },
+    "OutputJVSantosTier2FargateServiceName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "JVSantosTier2FargateService",
+          "Name"
+        ]
+      },
+      "Export": {
+        "Name": "JVSANTOSTier2ECSAwsArchitectureStack:OutputJVSantosTier2FargateServiceName"
+      }
+    },
+    "OutputJVSantosTier2FargateServiceLBDNSName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "JVSantosTier2FargateServiceLB",
+          "DNSName"
+        ]
+      },
+      "Export": {
+        "Name": "JVSANTOSTier2ECSAwsArchitectureStack:OutputJVSantosTier2FargateServiceLBDNSName"
+      }
+    }
+  }
+}

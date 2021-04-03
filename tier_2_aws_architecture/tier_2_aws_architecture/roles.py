@@ -3,30 +3,6 @@ from policies import generate_pipeline_policy, generate_codebuild_policy, genera
     generate_ecs_execution_policy
 
 
-def generate_beanstalk_instance_profile_role(scope):
-    role = iam.Role(scope=scope,
-                    id="JVSANTOSTier2BeanstalkInstanceProfileRole",
-                    assumed_by=iam.ServicePrincipal("ec2.amazonaws.com"),
-                    role_name="JVSANTOSTier2BeanstalkInstanceProfileRole"
-                    )
-    role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AWSElasticBeanstalkWebTier"))
-    return role
-
-
-def generate_beanstalk_service_role(scope):
-    role = iam.Role(scope=scope,
-                    id="JVSANTOSTier2BeanstalkServiceRole",
-                    assumed_by=iam.ServicePrincipal("elasticbeanstalk.amazonaws.com"),
-                    role_name="JVSANTOSTier2BeanstalkServiceRole"
-                    )
-
-    role.add_managed_policy(
-        iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSElasticBeanstalkEnhancedHealth"))
-    role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSElasticBeanstalkService"))
-
-    return role
-
-
 def generate_pipeline_service_role(scope):
     role = iam.Role(scope=scope,
                     id="JVSANTOSTier2PipelineServiceRole",

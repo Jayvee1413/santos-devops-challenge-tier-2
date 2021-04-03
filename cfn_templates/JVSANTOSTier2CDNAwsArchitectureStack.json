@@ -1,0 +1,118 @@
+{
+  "Resources": {
+    "JVSANTOSTier2CloudfrontDistributionCFDistribution56692F7D": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Aliases": [
+            "jvsantos-tier2.apperdevops.com"
+          ],
+          "DefaultCacheBehavior": {
+            "AllowedMethods": [
+              "DELETE",
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PATCH",
+              "POST",
+              "PUT"
+            ],
+            "CachedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "Compress": true,
+            "ForwardedValues": {
+              "Cookies": {
+                "Forward": "all"
+              },
+              "Headers": [
+                "*"
+              ],
+              "QueryString": true
+            },
+            "TargetOriginId": "origin1",
+            "ViewerProtocolPolicy": "redirect-to-https"
+          },
+          "DefaultRootObject": "",
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": [
+            {
+              "ConnectionAttempts": 3,
+              "ConnectionTimeout": 10,
+              "CustomOriginConfig": {
+                "HTTPPort": 80,
+                "HTTPSPort": 443,
+                "OriginKeepaliveTimeout": 5,
+                "OriginProtocolPolicy": "match-viewer",
+                "OriginReadTimeout": 30,
+                "OriginSSLProtocols": [
+                  "TLSv1.2"
+                ]
+              },
+              "DomainName": {
+                "Fn::ImportValue": "JVSANTOSTier2ECSAwsArchitectureStack:OutputJVSantosTier2FargateServiceLBDNSName"
+              },
+              "Id": "origin1"
+            }
+          ],
+          "PriceClass": "PriceClass_100",
+          "ViewerCertificate": {
+            "AcmCertificateArn": "arn:aws:acm:us-east-1:329511059546:certificate/b933533b-4c3f-4d15-a114-100f7458fc47",
+            "SslSupportMethod": "sni-only"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "jvsantos.tier2"
+          }
+        ]
+      }
+    },
+    "CloudfrontTier2Route53ARecord69D7D3E4": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "Name": "jvsantos-tier2.apperdevops.com.",
+        "Type": "A",
+        "AliasTarget": {
+          "DNSName": {
+            "Fn::GetAtt": [
+              "JVSANTOSTier2CloudfrontDistributionCFDistribution56692F7D",
+              "DomainName"
+            ]
+          },
+          "HostedZoneId": {
+            "Fn::FindInMap": [
+              "AWSCloudFrontPartitionHostedZoneIdMap",
+              {
+                "Ref": "AWS::Partition"
+              },
+              "zoneId"
+            ]
+          }
+        },
+        "HostedZoneId": "Z04135332RXQPQVNH7G61"
+      }
+    },
+  },
+  "Mappings": {
+    "AWSCloudFrontPartitionHostedZoneIdMap": {
+      "aws": {
+        "zoneId": "Z2FDTNDATAQYW2"
+      },
+      "aws-cn": {
+        "zoneId": "Z3RFFRIM2A3IF5"
+      }
+    }
+  },
+  "Outputs": {
+    "JVSantosTier2Domain": {
+      "Value": {
+        "Ref": "CloudfrontTier2Route53ARecord69D7D3E4"
+      }
+    }
+  }
+}
